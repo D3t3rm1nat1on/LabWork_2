@@ -1,0 +1,5 @@
+C:\Users\Usver\RiderProjects\LabWork_2\LabWork_2\obj\Debug\LabWork_2.csprojAssemblyReference.cache
+C:\Users\Usver\RiderProjects\LabWork_2\LabWork_2\bin\Debug\LabWork_2.exe
+C:\Users\Usver\RiderProjects\LabWork_2\LabWork_2\bin\Debug\LabWork_2.pdb
+C:\Users\Usver\RiderProjects\LabWork_2\LabWork_2\obj\Debug\LabWork_2.exe
+C:\Users\Usver\RiderProjects\LabWork_2\LabWork_2\obj\Debug\LabWork_2.pdb
