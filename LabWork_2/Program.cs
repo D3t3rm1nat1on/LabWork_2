@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Xml.Schema;
+using System.Text;
 
 namespace LabWork_2
 {
@@ -12,156 +10,129 @@ namespace LabWork_2
         //Левый сын, правый брат (таблица, массив)
         public static void Main(string[] args)
         {
-            int n = int.Parse(Console.ReadLine());
+            Console.OutputEncoding = Encoding.UTF8;
+            int n = int.TryParse(Console.ReadLine(), out int temp) ? temp : 10;
+            Console.WriteLine($"N = {n}");
+
             MyTree myTree = new MyTree(n);
             Random random = new Random();
             var numbers = Enumerable.Range(1, n).OrderBy(i => random.Next()).ToArray();
-            int count = 0;
             foreach (var number in numbers)
-            {
                 myTree.AddRandom(number);
-                count++;
-            }
-            
-            // myTree = new MyTree(10);
-            // Console.WriteLine("root " + 5);
-            // myTree.DebugAddRoot(5);
-            // PrintMyTree(myTree);
-            // Console.WriteLine(3);
-            // myTree.Add(3);
-            // PrintMyTree(myTree);
-            // Console.WriteLine(10);
-            // myTree.Add(10);
-            // PrintMyTree(myTree);
-            // Console.WriteLine(2);
-            // myTree.Add(2);
-            // PrintMyTree(myTree);
-            // Console.WriteLine(6);
-            // myTree.Add(6);
-            // PrintMyTree(myTree);
-            // Console.WriteLine(8);
-            // myTree.Add(8);
-            // PrintMyTree(myTree);
-            // Console.WriteLine("root " + 4);
-            // myTree.DebugAddRoot(4);
-            // PrintMyTree(myTree);
-            // Console.WriteLine("root " + 9);
-            // myTree.DebugAddRoot(9);
-            // PrintMyTree(myTree);
-            // Console.WriteLine("root " + 1);
-            // myTree.DebugAddRoot(1);
-            // PrintMyTree(myTree);
-            // Console.WriteLine("root " + 7);
-            // myTree.DebugAddRoot(7);
-            // PrintMyTree(myTree);
-            
-            Console.WriteLine($"Дерево А --- {myTree.treeSize}");
-            //Console.WriteLine(string.Join(" ", numbers));
-            PrintMyTree(myTree);
+
+            Console.ForegroundColor = ConsoleColor.DarkRed;
+            Console.WriteLine("Дерево А");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            TreePrinter.PrintMyTree(myTree);
+
+            Console.ForegroundColor = ConsoleColor.DarkMagenta;
             PreOrder(myTree);
             InOrder(myTree);
-            
-            
-            MyTree deleteTree = new MyTree(n/2);
-            numbers = numbers.OrderBy(i => random.Next()).TakeWhile((_, idx) => idx < numbers.Length/2).ToArray();
-            count = 0;
-            foreach (var number in numbers)
-            {
-                deleteTree.AddRandom(number);
-                count++;
-            }
+            Console.ForegroundColor = ConsoleColor.Gray;
 
-            Console.WriteLine($"Дерево B --- {count}");
-            //Console.WriteLine(string.Join(" ", numbers));
-            PrintMyTree(deleteTree);
+            MyTree deleteTree = new MyTree(n / 2);
+            numbers = numbers.OrderBy(i => random.Next()).TakeWhile((_, idx) => idx < numbers.Length / 2).ToArray();
+            foreach (var number in numbers)
+                deleteTree.AddRandom(number);
+
+            Console.ForegroundColor = ConsoleColor.DarkRed;
+            Console.WriteLine("Дерево B");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            TreePrinter.PrintMyTree(deleteTree);
+
+            Console.ForegroundColor = ConsoleColor.DarkMagenta;
             PreOrder(deleteTree);
             InOrder(deleteTree);
-            
-            
+            Console.ForegroundColor = ConsoleColor.Gray;
+
             myTree.Deletion(deleteTree);
-            Console.WriteLine("В итоге осталось:------------------------------------");
-            PrintMyTree(myTree);
+            Console.ForegroundColor = ConsoleColor.DarkRed;
+            Console.WriteLine("А = A ⋂ B");
+            Console.ForegroundColor = ConsoleColor.Gray;
+            TreePrinter.PrintMyTree(myTree);
+            Console.ForegroundColor = ConsoleColor.DarkMagenta;
             PreOrder(myTree);
             InOrder(myTree);
+            Console.ForegroundColor = ConsoleColor.Gray;
             Console.ReadLine();
         }
 
-
         public class MyTree
         {
-            public int[,] table; // leftmost_child, key, right_sibling ---- idx = pointer ---- 0 = null
-            public int addIdx; // индекс массива, в который будет добавлен новый элемент
-            public int topIdx; // индекс корня дерева
-            public int treeSize;
+            public readonly int[,] Table; // leftmost_child, key, right_sibling ---- idx = pointer ---- 0 = null
+            private int _addIdx; // индекс массива, в который будет добавлен новый элемент
+            public int TopIdx; // индекс корня дерева
+            private readonly int _treeSize;
 
             public MyTree(int n)
             {
-                addIdx = 1;
-                treeSize = n;
-                table = new int[n + 1, 3];
+                _addIdx = 1;
+                _treeSize = n;
+                Table = new int[n + 1, 3];
             }
 
+            // обычная вставка
             public void Add(int value)
             {
-                AddOnIdx(topIdx, value);
-                addIdx++;
+                AddOnIdx(TopIdx, value);
+                _addIdx++;
 
                 void AddOnIdx(int index, int key)
                 {
                     // если дерево пустое
-                    if (addIdx == 1)
+                    if (_addIdx == 1)
                     {
-                        table[addIdx, 1] = key;
-                        topIdx = 1;
+                        Table[_addIdx, 1] = key;
+                        TopIdx = 1;
                         return;
                     }
 
                     // проверка на входной элемент
-                    if (table[index, 1] == key)
+                    if (Table[index, 1] == key)
                     {
                         throw new Exception("бинарное дерево уже содержит такой элемент");
                     }
 
                     // если элемент является листом
-                    if (table[index, 0] == 0)
+                    if (Table[index, 0] == 0)
                     {
-                        table[index, 0] = addIdx;
-                        table[addIdx, 1] = key;
+                        Table[index, 0] = _addIdx;
+                        Table[_addIdx, 1] = key;
                         return;
                     }
 
                     // если вставляемый элемент меньше
-                    if (table[index, 1] > key)
+                    if (Table[index, 1] > key)
                     {
-                        int childIdx = table[index, 0];
+                        int childIdx = Table[index, 0];
                         //если ребенок меньше родителя
-                        if (table[childIdx, 1] < table[index, 1])
+                        if (Table[childIdx, 1] < Table[index, 1])
                         {
                             AddOnIdx(childIdx, key);
                         }
                         else // если ребенок больше родителя
                         {
-                            table[index, 0] = addIdx;
-                            table[addIdx, 2] = childIdx;
-                            table[addIdx, 1] = key;
+                            Table[index, 0] = _addIdx;
+                            Table[_addIdx, 2] = childIdx;
+                            Table[_addIdx, 1] = key;
                         }
                     }
 
                     // если вставляемый элемент больше
-                    if (table[index, 1] < key)
+                    if (Table[index, 1] < key)
                     {
-                        int childIdx = table[index, 0];
+                        int childIdx = Table[index, 0];
                         // если ребенок меньше родителя
-                        if (table[childIdx, 1] < table[index, 1])
+                        if (Table[childIdx, 1] < Table[index, 1])
                         {
-                            int broIdx = table[childIdx, 2];
+                            int broIdx = Table[childIdx, 2];
                             // если есть брат
                             if (broIdx != 0)
                                 AddOnIdx(broIdx, key);
                             else // если справа пусто
                             {
-                                table[childIdx, 2] = addIdx;
-                                table[addIdx, 1] = key;
+                                Table[childIdx, 2] = _addIdx;
+                                Table[_addIdx, 1] = key;
                             }
                         }
                         else // если ребенок больше родителя
@@ -176,146 +147,136 @@ namespace LabWork_2
                 }
             }
 
+            // рандомизированная вставка
             public void AddRandom(int value)
             {
                 Add(value);
-                int random = new Random().Next(1, addIdx) % (addIdx - 1);
+                int random = new Random().Next(1, _addIdx) % (_addIdx - 1);
                 if (random == 0)
-                    InsertRoot(addIdx - 1, topIdx);
+                    InsertRoot(_addIdx - 1, TopIdx);
             }
-            
-            // public void DebugAddRoot(int value)
-            // {
-            //     Add(value);
-            //     int random = new Random().Next(1, addIdx) % (addIdx - 1);
-            //     if (true)
-            //         InsertRoot(addIdx - 1, topIdx);
-            // }
 
-            public bool Contains(int value)
+            private bool Contains(int value) //1+1+14log_2(n)+1 = 3 + 14log_2(n)
             {
-                int index = topIdx;
-                bool result = false;
-                Search();
-                return result;
+                int index = TopIdx; //1
+                bool result = false; //1
+                Search(); //14log_2(n)
+                return result; //1
 
-                void Search()
+                void Search() // (1+1+3+1+1+1+1+3+1+1)log_2(n) = 14log_2(n)
                 {
-                    int childIdx = table[index, 0];
-                    int broIdx = table[childIdx, 2];
-                    if (broIdx == index || childIdx == index)
-                        return;
+                    int childIdx = Table[index, 0]; // 1
+                    int broIdx = Table[childIdx, 2]; // 1
+                    if (broIdx == index || childIdx == index) // 3
+                        return; // 1
 
-                    if (value == table[index, 1])
+                    if (value == Table[index, 1]) // 1
                     {
-                        result = true;
-                        return;
+                        result = true; // 1
+                        return; // 1
                     }
-                    
-                    if (table[index, 1] < value && broIdx != 0)
-                        index = broIdx;
+
+                    if (Table[index, 1] < value && broIdx != 0) // 3
+                        index = broIdx; // 1
                     else
-                        index = childIdx;
+                        index = childIdx; // 1
 
                     Search();
                 }
             }
 
-            public void Deletion(MyTree tree)
+            public void Deletion(MyTree tree) //  1 + 28n + 38n(log_2(n)) 
             {
-                int[] deleteNumbers = new int[treeSize + 1];
-                for (int i = 1; i <= treeSize; i++)
+                for (int i = 1;
+                    i <= _treeSize;
+                    i++) //1+n+n(1+(3+14log_2(n))+(24+24log_2(n))) = 1 + 28n + 38n(log_2(n)) 
                 {
-                    deleteNumbers[i] = table[i, 1];
-                }
-                for (int i = 1; i <= treeSize; i++)
-                {
-                    int value = deleteNumbers[i];
-                    if (!tree.Contains(value))
+                    int value = Table[i, 1]; // 1
+                    if (!tree.Contains(value)) //3 + 14log_2(n)
                     {
-                        Delete(value);
+                        Delete(value); // 24 + 24log_2(n)
                     }
                 }
 
-                void Delete(int value)
+                void Delete(int value) //(5+14log_2(n))+(5+10log_2(n))+1+1+1+1+1+1+1+1+1+1+1+1+1+1 = 24 + 24log_2(n)
                 {
-                    int deletingIdx = GetIdx(value);
-                    int parentIdx = GetParentIdx(deletingIdx);
-                    int leftChildIdx = table[deletingIdx, 0];
-                    int rightBroIdx = table[leftChildIdx, 2];
+                    int deletingIdx = GetIdx(value); // 5 + 14log_2(n)
+                    int parentIdx = GetParentIdx(deletingIdx); // 5 + 10log_2(n)
+                    int leftChildIdx = Table[deletingIdx, 0]; // 1
+                    int rightBroIdx = Table[leftChildIdx, 2]; // 1
 
                     // если удаляемая вершина является листом
-                    if (leftChildIdx == 0)
+                    if (leftChildIdx == 0) // 1
                     {
                         // если удаляемая вершина слева от родителя
-                        if (table[parentIdx, 0] == deletingIdx)
+                        if (Table[parentIdx, 0] == deletingIdx) // 1
                         {
-                            table[parentIdx, 0] = 0;
+                            Table[parentIdx, 0] = 0; // 1
                             // если остался правый брат
-                            int deletingBroIdx = table[deletingIdx, 2];
-                            if (deletingBroIdx != 0)
+                            int deletingBroIdx = Table[deletingIdx, 2]; // 1
+                            if (deletingBroIdx != 0) // 1
                             {
-                                table[parentIdx, 0] = deletingBroIdx;
+                                Table[parentIdx, 0] = deletingBroIdx; // 1
                             }
                         }
                         else // если удаляемая вершина справа от родителя
                         {
-                            int parentLeftChildIdx = table[parentIdx, 0];
-                            table[parentLeftChildIdx, 2] = 0;
+                            int parentLeftChildIdx = Table[parentIdx, 0]; // 1
+                            Table[parentLeftChildIdx, 2] = 0; // 1
                         }
 
-                        table[deletingIdx, 0] = 0;
-                        table[deletingIdx, 1] = 0;
-                        table[deletingIdx, 2] = 0;
-                        return;
+                        Table[deletingIdx, 0] = 0; // 1
+                        Table[deletingIdx, 1] = 0; // 1
+                        Table[deletingIdx, 2] = 0; // 1
+                        return; // 1
                     }
 
                     // если у вершины один дочерний узел
                     if (rightBroIdx == 0)
                     {
                         // если удаляемая вершина младшая или единственная у родителя
-                        if (table[parentIdx, 0] == deletingIdx || parentIdx == 0)
+                        if (Table[parentIdx, 0] == deletingIdx || parentIdx == 0)
                         {
                             if (parentIdx == 0)
-                                topIdx = leftChildIdx;
+                                TopIdx = leftChildIdx;
                             else
-                                table[parentIdx, 0] = leftChildIdx;
-                            table[leftChildIdx, 2] = table[deletingIdx, 2];
+                                Table[parentIdx, 0] = leftChildIdx;
+                            Table[leftChildIdx, 2] = Table[deletingIdx, 2];
                         }
                         else // если удаляемая вершина старшая и не единственная у родителя
                         {
-                            int parentsChildIdx = table[parentIdx, 0];
-                            table[parentsChildIdx, 2] = leftChildIdx;
+                            int parentsChildIdx = Table[parentIdx, 0];
+                            Table[parentsChildIdx, 2] = leftChildIdx;
                         }
 
-                        table[deletingIdx, 0] = 0;
-                        table[deletingIdx, 1] = 0;
-                        table[deletingIdx, 2] = 0;
+                        Table[deletingIdx, 0] = 0;
+                        Table[deletingIdx, 1] = 0;
+                        Table[deletingIdx, 2] = 0;
                         return;
                     }
 
                     // если у вершины два дочерних узла
                     int nextIdx = FindNext(deletingIdx);
-                    int nextValue = table[nextIdx, 1];
+                    int nextValue = Table[nextIdx, 1];
                     Delete(nextValue);
-                    table[deletingIdx, 1] = nextValue;
+                    Table[deletingIdx, 1] = nextValue;
 
                 }
 
                 int FindNext(int startIdx)
                 {
-                    int leftChildIdx = table[startIdx, 0];
-                    int rightChildIdx = table[leftChildIdx, 2];
+                    int leftChildIdx = Table[startIdx, 0];
+                    int rightChildIdx = Table[leftChildIdx, 2];
                     // если левый сын больше родителя (то он правый)
-                    if (table[leftChildIdx, 1] > table[startIdx, 1])
+                    if (Table[leftChildIdx, 1] > Table[startIdx, 1])
                         rightChildIdx = leftChildIdx;
 
                     // находим минимальное справа
-                    int minIdx = table[rightChildIdx, 0];
-                    while (table[minIdx, 1] < table[rightChildIdx, 1] && minIdx != 0)
+                    int minIdx = Table[rightChildIdx, 0];
+                    while (Table[minIdx, 1] < Table[rightChildIdx, 1] && minIdx != 0)
                     {
                         rightChildIdx = minIdx;
-                        minIdx = table[rightChildIdx, 0];
+                        minIdx = Table[rightChildIdx, 0];
                     }
 
                     return rightChildIdx;
@@ -408,57 +369,57 @@ namespace LabWork_2
 //                 }
 //             }
 
-            public int GetIdx(int value)
+            private int GetIdx(int value) //1+2+1+14log_2(n)+1 = 5 + 14log_2(n)
             {
-                int checkingIdx = topIdx;
-                if (value == table[topIdx, 1])
-                    return topIdx;
-                Check();
-                return checkingIdx;
+                int checkingIdx = TopIdx; // 1
+                if (value == Table[TopIdx, 1]) // 2
+                    return TopIdx; // 1
+                Check(); //14log_2(n)
+                return checkingIdx; // 1
 
-                void Check()
+                void Check() // (1+1+1+1+1+3+1+1+3+1)log_2(n) = 14log_2(n)
                 {
-                    int childIdx = table[checkingIdx, 0];
-                    int broIdx = table[childIdx, 2];
-                    int checkingValue = table[checkingIdx, 1];
+                    int childIdx = Table[checkingIdx, 0]; // 1
+                    int broIdx = Table[childIdx, 2]; // 1
+                    int checkingValue = Table[checkingIdx, 1]; // 1
 
-                    if (value == checkingValue)
-                        return;
+                    if (value == checkingValue) // 1
+                        return; // 1
 
-                    if (value < table[checkingIdx, 1] || table[childIdx, 2] == 0)
-                        checkingIdx = childIdx;
+                    if (value < Table[checkingIdx, 1] || Table[childIdx, 2] == 0) // 3
+                        checkingIdx = childIdx; // 1
                     else
-                        checkingIdx = broIdx;
+                        checkingIdx = broIdx; // 1
 
-                    if (childIdx == 0 && broIdx == 0)
+                    if (childIdx == 0 && broIdx == 0) // 3
                     {
-                        return;
+                        return; // 1
                     }
 
                     Check();
                 }
             }
 
-            private int GetParentIdx(int myIdx)
+            private int GetParentIdx(int myIdx) // 1+1+1+1+10log_2(n)+1 = 5 + 10log_2(n)
             {
-                int checkingIdx = topIdx;
-                int myValue = table[myIdx, 1];
-                if (myIdx == topIdx)
-                    return 0;
-                CheckParent();
-                return checkingIdx;
+                int checkingIdx = TopIdx; // 1
+                int myValue = Table[myIdx, 1]; // 1
+                if (myIdx == TopIdx) // 1
+                    return 0; // 1
+                CheckParent(); // 10log_2(n)
+                return checkingIdx; // 1
 
-                void CheckParent()
+                void CheckParent() //(1+1+3+1+3+1+1)log_2(n) = 10log_2(n)
                 {
-                    int childIdx = table[checkingIdx, 0];
-                    int broIdx = table[childIdx, 2];
-                    if (broIdx == myIdx || childIdx == myIdx)
-                        return;
+                    int childIdx = Table[checkingIdx, 0]; // 1
+                    int broIdx = Table[childIdx, 2]; // 1
+                    if (broIdx == myIdx || childIdx == myIdx) // 3
+                        return; // 1
 
-                    if (table[checkingIdx, 1] < myValue && broIdx != 0)
-                        checkingIdx = broIdx;
+                    if (Table[checkingIdx, 1] < myValue && broIdx != 0) // 3
+                        checkingIdx = broIdx; // 1
                     else
-                        checkingIdx = childIdx;
+                        checkingIdx = childIdx; // 1
 
                     CheckParent();
                 }
@@ -470,16 +431,16 @@ namespace LabWork_2
                 while (myIdx != upperIdx)
                 {
                     int parentIdx;
-                    if (table[upperIdx, 0] == myIdx || table[upperIdx, 2] == myIdx)
+                    if (Table[upperIdx, 0] == myIdx || Table[upperIdx, 2] == myIdx)
                         parentIdx = upperIdx;
                     else
                         parentIdx = GetParentIdx(myIdx);
-                    if (table[parentIdx, 1] > table[myIdx, 1])
+                    if (Table[parentIdx, 1] > Table[myIdx, 1])
                         RotateRight(myIdx, parentIdx);
                     else
                         RotateLeft(myIdx, parentIdx);
                     myIdx = parentIdx;
-                    
+
                     //PrintMyTree(this, 0, 10);
                 }
             }
@@ -487,49 +448,49 @@ namespace LabWork_2
             private void RotateLeft(int myIdx, int parentIdx)
             {
                 //Console.WriteLine("RotateLeft");
-                
-                int[] Q = {table[myIdx, 0], table[myIdx, 1], table[myIdx, 2]};
-                int[] P = {table[parentIdx, 0], table[parentIdx, 1], table[parentIdx, 2]};
 
-                int A_idx = P[0];
-                int B_idx = Q[0];
-                int C_idx = table[B_idx, 2];
+                int[] q = {Table[myIdx, 0], Table[myIdx, 1], Table[myIdx, 2]};
+                int[] p = {Table[parentIdx, 0], Table[parentIdx, 1], Table[parentIdx, 2]};
+
+                int aIdx = p[0];
+                int bIdx = q[0];
+                int cIdx = Table[bIdx, 2];
 
                 // проверяем A
-                if (table[A_idx, 2] == 0)
+                if (Table[aIdx, 2] == 0)
                 {
-                    A_idx = 0;
+                    aIdx = 0;
                 }
 
                 // если B справа, то меняем индексы B и C
-                if (table[B_idx, 1] > Q[1])
+                if (Table[bIdx, 1] > q[1])
                 {
-                    C_idx = C_idx + B_idx;
-                    B_idx = C_idx - B_idx;
-                    C_idx = C_idx - B_idx;
+                    cIdx = cIdx + bIdx;
+                    bIdx = cIdx - bIdx;
+                    cIdx = cIdx - bIdx;
                 }
                 else
                 {
-                    table[B_idx, 2] = 0;
+                    Table[bIdx, 2] = 0;
                 }
 
-                Q[0] = myIdx;
-                Q[2] = P[2];
-                P[2] = C_idx;
-                
-                if (A_idx == 0)
+                q[0] = myIdx;
+                q[2] = p[2];
+                p[2] = cIdx;
+
+                if (aIdx == 0)
                 {
-                    P[0] = B_idx;
+                    p[0] = bIdx;
                 }
                 else
                 {
-                    table[A_idx, 2] = B_idx;
+                    Table[aIdx, 2] = bIdx;
                 }
 
                 for (int i = 0; i < 3; i++)
                 {
-                    table[myIdx, i] = P[i];
-                    table[parentIdx, i] = Q[i];
+                    Table[myIdx, i] = p[i];
+                    Table[parentIdx, i] = q[i];
                 }
             }
 
@@ -537,51 +498,50 @@ namespace LabWork_2
             {
                 //Console.WriteLine("RotateRight");
 
-                int[] P = {table[myIdx, 0], table[myIdx, 1], table[myIdx, 2]};
-                int[] Q = {table[parentIdx, 0], table[parentIdx, 1], table[parentIdx, 2]};
+                int[] p = {Table[myIdx, 0], Table[myIdx, 1], Table[myIdx, 2]};
+                int[] q = {Table[parentIdx, 0], Table[parentIdx, 1], Table[parentIdx, 2]};
 
-                int A_idx = P[0];
-                int B_idx = table[A_idx, 2];
-                int C_idx = table[myIdx, 2];
+                int aIdx = p[0];
+                int bIdx = Table[aIdx, 2];
+                int cIdx = Table[myIdx, 2];
                 // если А справа, то меняем индексы А и В
-                if (table[A_idx, 1] > P[1])
+                if (Table[aIdx, 1] > p[1])
                 {
-                    A_idx = A_idx + B_idx;
-                    B_idx = A_idx - B_idx;
-                    A_idx = A_idx - B_idx;
+                    aIdx = aIdx + bIdx;
+                    bIdx = aIdx - bIdx;
+                    aIdx = aIdx - bIdx;
                 }
 
                 // указываем на Q (изменится потом)
-                if (A_idx == 0)
-                    P[0] = myIdx;
+                if (aIdx == 0)
+                    p[0] = myIdx;
                 else
-                    table[A_idx, 2] = myIdx;
+                    Table[aIdx, 2] = myIdx;
 
                 // указываем на B и C
-                if (B_idx == 0)
-                    Q[0] = C_idx;
+                if (bIdx == 0)
+                    q[0] = cIdx;
                 else
                 {
-                    Q[0] = B_idx;
-                    table[B_idx, 2] = C_idx;
+                    q[0] = bIdx;
+                    Table[bIdx, 2] = cIdx;
                 }
 
-                P[2] = Q[2];
-                Q[2] = 0;
+                p[2] = q[2];
+                q[2] = 0;
                 for (int i = 0; i < 3; i++)
                 {
-                    table[myIdx, i] = Q[i];
-                    table[parentIdx, i] = P[i];
+                    Table[myIdx, i] = q[i];
+                    Table[parentIdx, i] = p[i];
                 }
             }
         }
-
 
         /// <summary>
         /// прямой обход бинарного дерева
         /// </summary>
         /// <param name="tree"></param>
-        public static void PreOrder(MyTree tree)
+        private static void PreOrder(MyTree tree)
         {
             // Проверяем, не является ли текущий узел пустым или null.
             // Показываем поле данных корня (или текущего узла).
@@ -589,7 +549,7 @@ namespace LabWork_2
             // Обходим правое поддерево рекурсивно, вызвав функцию прямого обхода.
 
             List<int> output = new List<int>();
-            Search(tree.topIdx);
+            Search(tree.TopIdx);
             Console.WriteLine("Прямой обход");
             Console.WriteLine(string.Join(", ", output));
 
@@ -597,9 +557,9 @@ namespace LabWork_2
             {
                 if (index == 0)
                     return;
-                output.Add(tree.table[index, 1]);
-                Search(tree.table[index, 0]);
-                Search(tree.table[index, 2]);
+                output.Add(tree.Table[index, 1]);
+                Search(tree.Table[index, 0]);
+                Search(tree.Table[index, 2]);
             }
         }
 
@@ -607,7 +567,7 @@ namespace LabWork_2
         /// симметричный (центрированный) обход бинарного дерева
         /// </summary>
         /// <param name="tree"></param>
-        public static void InOrder(MyTree tree)
+        private static void InOrder(MyTree tree)
         {
             // Проверяем, не является ли текущий узел пустым или null.
             // Обходим левое поддерево рекурсивно, вызвав функцию центрированного обхода.
@@ -615,7 +575,7 @@ namespace LabWork_2
             // Обходим правое поддерево рекурсивно, вызвав функцию центрированного обхода.
 
             List<int> output = new List<int>();
-            Search(tree.topIdx);
+            Search(tree.TopIdx);
             Console.WriteLine("Симметричный обход");
             Console.WriteLine(string.Join(", ", output));
 
@@ -623,80 +583,20 @@ namespace LabWork_2
             {
                 if (index == 0)
                     return;
-                int leftIdx = tree.table[index, 0];
-                int rightIdx = tree.table[leftIdx, 2];if (tree.table[leftIdx, 1] > tree.table[index, 1])
+                int leftIdx = tree.Table[index, 0];
+                int rightIdx = tree.Table[leftIdx, 2];
+                if (tree.Table[leftIdx, 1] > tree.Table[index, 1])
                 {
-                    leftIdx=leftIdx^rightIdx;
-                    rightIdx=leftIdx^rightIdx;
-                    leftIdx=leftIdx^rightIdx;
+                    leftIdx = leftIdx ^ rightIdx;
+                    rightIdx = leftIdx ^ rightIdx;
+                    leftIdx = leftIdx ^ rightIdx;
                 }
+
                 Search(leftIdx);
-                output.Add(tree.table[index, 1]);
+                output.Add(tree.Table[index, 1]);
                 Search(rightIdx);
             }
         }
 
-        public class BNode
-        {
-            public int item;
-            public BNode right;
-            public BNode left;
-
-            public BNode(int item)
-            {
-                this.item = item;
-            }
-        }
-        public static void PrintMyTree(MyTree myTree, int topMargin = 0, int leftMargin = 2)
-        {
-            BNode firstNode = new BNode(0);
-            // Console.WriteLine($"Top = {myTree.topIdx}");
-            // for (int i = 0; i <= myTree.treeSize; i++)
-            // {
-            //     Console.WriteLine($"{i,2}) {myTree.table[i, 0],2} {myTree.table[i, 1],2} {myTree.table[i, 2],2}");
-            // }
-
-            Add(firstNode, myTree.topIdx);
-
-            TreePrinter.Print(firstNode, topMargin, leftMargin);
-
-            void Add(BNode node, int index)
-            {
-                if (myTree.table[index, 1] != 0)
-                {
-                    node.item = myTree.table[index, 1];
-                    // если есть сын
-                    if (myTree.table[index, 0] != 0)
-                    {
-                        int childIdx = myTree.table[index, 0];
-                        // если сын меньше ключа
-                        if (myTree.table[childIdx, 1] < node.item)
-                        {
-                            node.left = new BNode(0);
-                            Add(node.left, childIdx);
-                            int broIdx = myTree.table[childIdx, 2];
-                            // если у сына есть брат
-                            if (broIdx != 0)
-                            {
-                                node.right = new BNode(0);
-                                Add(node.right, broIdx);
-                            }
-                        }
-                        // если сын больше ключа (значит сын у нас один)
-                        else
-                        {
-                            node.right = new BNode(0);
-                            Add(node.right, childIdx);
-                        }
-                    }
-                }
-                // else
-                // {
-                //     firstNode = null;
-                // }
-
-            }
-
-        }
     }
 }
