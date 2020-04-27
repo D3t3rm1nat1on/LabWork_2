@@ -624,7 +624,12 @@ namespace LabWork_2
                 if (index == 0)
                     return;
                 int leftIdx = tree.table[index, 0];
-                int rightIdx = tree.table[leftIdx, 2];
+                int rightIdx = tree.table[leftIdx, 2];if (tree.table[leftIdx, 1] > tree.table[index, 1])
+                {
+                    leftIdx=leftIdx^rightIdx;
+                    rightIdx=leftIdx^rightIdx;
+                    leftIdx=leftIdx^rightIdx;
+                }
                 Search(leftIdx);
                 output.Add(tree.table[index, 1]);
                 Search(rightIdx);
