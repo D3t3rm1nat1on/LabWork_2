@@ -185,16 +185,18 @@ namespace LabWork_2
                 }
             }
 
-            public void Deletion(MyTree tree) //  1 + 28n + 38n(log_2(n)) 
+            public void Deletion(MyTree tree) //  1 + 29n + 38n(log_2(n)) 
             {
                 for (int i = 1;
                     i <= _treeSize;
                     i++) //1+n+n(1+(3+14log_2(n))+(24+24log_2(n))) = 1 + 28n + 38n(log_2(n)) 
                 {
-                    int value = Table[i, 1]; // 1
-                    if (!tree.Contains(value)) //3 + 14log_2(n)
+                    int value = Table[i,1]; // 1
+                    
+                    if (value != 0 && !tree.Contains(value)) //4 + 14log_2(n)
                     {
                         Delete(value); // 24 + 24log_2(n)
+                        i--;
                     }
                 }
 
@@ -427,7 +429,6 @@ namespace LabWork_2
 
             private void InsertRoot(int myIdx, int upperIdx)
             {
-                //PrintMyTree(this, 0, 10);
                 while (myIdx != upperIdx)
                 {
                     int parentIdx;
@@ -440,8 +441,6 @@ namespace LabWork_2
                     else
                         RotateLeft(myIdx, parentIdx);
                     myIdx = parentIdx;
-
-                    //PrintMyTree(this, 0, 10);
                 }
             }
 
@@ -535,6 +534,7 @@ namespace LabWork_2
                     Table[parentIdx, i] = p[i];
                 }
             }
+            
         }
 
         /// <summary>
